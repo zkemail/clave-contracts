@@ -7,6 +7,7 @@
     "@nomad-xyz/excessively-safe-call": "github:nomad-xyz/ExcessivelySafeCall",
     "@openzeppelin/contracts": "4.6.0",
     "@openzeppelin/contracts-upgradeable": "4.6.0",
+    "@openzeppelin-v5/contracts": "npm:@openzeppelin/contracts@^5.0.0",
     "@redstone-finance/evm-connector": "0.3.6",
     "ts-morph": "^19.0.0"
   },
