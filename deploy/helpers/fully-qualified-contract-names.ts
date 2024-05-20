@@ -18,6 +18,8 @@ export const contractNames = {
         'contracts/modules/recovery/SocialRecoveryModule.sol:SocialRecoveryModule',
     cloudRecovery:
         'contracts/modules/recovery/CloudRecoveryModule.sol:CloudRecoveryModule',
+    emailAuthRecovery:
+        'contracts/modules/recovery/EmailAuthRecoveryModule.sol:EmailAuthRecoveryModule',
     erc20Paymaster: 'contracts/paymasters/ERC20Paymaster.sol:ERC20Paymaster',
     erc20PaymasterMock:
         'contracts/test/ERC20PaymasterMock.sol:ERC20PaymasterMock',
