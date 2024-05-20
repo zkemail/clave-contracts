@@ -1,0 +1,4 @@
+[submodule "contracts/email-auth"]
+	path = contracts/email-auth
+	url = https://github.com/zkemail/ether-email-auth
+	branch = feat/foundry-zksync
