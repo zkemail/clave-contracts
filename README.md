@@ -12,6 +12,7 @@
 ## Requirements
 
 -   install the zksync era test node from [here](https://github.com/matter-labs/era-test-node).
+-   current era_test_node-v0.1.0-alpha.21 doesn't work correctly, please use era_test_node-v0.1.0-alpha.18.
 
 ## Commands
 
