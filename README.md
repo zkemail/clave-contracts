@@ -41,5 +41,5 @@ PRIVATE_KEY=123cde574ccff....
 ### Deployment
 
 ```
-npx hardhat deploy-zksync --script deploy/deploy-email-auth-recovery.ts
+npx hardhat deploy-zksync --script deploy/deploy-email-recovery.ts
 ```

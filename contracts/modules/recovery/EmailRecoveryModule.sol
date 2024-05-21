@@ -10,12 +10,16 @@ import {IInitable} from '../../interfaces/IInitable.sol';
 import {IClaveAccount} from '../../interfaces/IClave.sol';
 import {BaseRecovery} from './base/BaseRecovery.sol';
 
+import {EmailAccountRecovery} from '../../email-auth/EmailAccountRecovery.sol';
+import {EmailAuthMsg} from '../../email-auth/EmailAuth.sol';
+import {ClaveImplementation} from '../../ClaveImplementation.sol';
+
 /**
- * @title Email Auth Account Recovery Module
- * @notice Recovers the account using a EmailAccountRecovery
- * @author https://github.com/zkemail
+ * @title Cloud Account Recovery Module
+ * @notice Recovers the account using a key stored in iCloud or similar
+ * @author https://getclave.io
  */
-contract EmailAuthRecoveryModule is BaseRecovery {
+contract EmailRecoveryModule is BaseRecovery {
     // Signature verification helper library
     using SignatureChecker for address;
 
@@ -23,7 +27,7 @@ contract EmailAuthRecoveryModule is BaseRecovery {
     uint256 public immutable TIMELOCK;
 
     // Cloud guardian addresses for each account
-    mapping(address => address) cloudGuardian;
+    mapping(address => address) emailGuardian;
 
     /**
      * @notice Emitted when a new cloud guardian is set for an account
@@ -61,6 +65,8 @@ contract EmailAuthRecoveryModule is BaseRecovery {
         emit Inited(msg.sender);
 
         _updateGuardian(guardian);
+
+        ClaveImplementation(payable(msg.sender)).requestGuardian(guardian);
     }
 
     /**
@@ -76,7 +82,7 @@ contract EmailAuthRecoveryModule is BaseRecovery {
             revert Errors.MODULE_NOT_REMOVED_CORRECTLY();
         }
 
-        delete cloudGuardian[msg.sender];
+        delete emailGuardian[msg.sender];
 
         emit Disabled(msg.sender);
 
@@ -102,6 +108,13 @@ contract EmailAuthRecoveryModule is BaseRecovery {
         _updateGuardian(guardian);
     }
 
+    function startAcceptance(
+        EmailAuthMsg memory emailAuthMsg,
+        uint templateIdx
+    ) external {
+        EmailAccountRecovery(payable(msg.sender)).handleAcceptance(emailAuthMsg, templateIdx);
+    }
+    
     /**
      * @notice Starts a recovery process for the given account
      * @dev Module must be inited for the account
@@ -109,7 +122,12 @@ contract EmailAuthRecoveryModule is BaseRecovery {
      * @param recoveryData RecoveryData calldata - Data for the recovery process
      * @param signature bytes calldata           - Signature of the cloud guardian
      */
-    function startRecovery(RecoveryData calldata recoveryData, bytes calldata signature) external {
+    function startRecovery(
+        RecoveryData calldata recoveryData, 
+        bytes calldata signature, 
+        EmailAuthMsg memory emailAuthMsg,
+        uint templateIdx
+    ) external {
         // Get the recovery address
         address recoveringAddress = recoveryData.recoveringAddress;
 
@@ -129,7 +147,7 @@ contract EmailAuthRecoveryModule is BaseRecovery {
         }
 
         bytes32 eip712Hash = _hashTypedDataV4(_recoveryDataHash(recoveryData));
-        address guardian = cloudGuardian[recoveringAddress];
+        address guardian = emailGuardian[recoveringAddress];
 
         if (!guardian.isValidSignatureNow(eip712Hash, signature)) {
             revert Errors.INVALID_GUARDIAN_SIGNATURE();
@@ -148,6 +166,8 @@ contract EmailAuthRecoveryModule is BaseRecovery {
             recoveryData.newOwner,
             block.timestamp + TIMELOCK
         );
+
+        EmailAccountRecovery(payable(recoveringAddress)).handleRecovery(emailAuthMsg, templateIdx);
     }
 
     /**
@@ -155,12 +175,12 @@ contract EmailAuthRecoveryModule is BaseRecovery {
      * @param account address - Address of the account
      */
     function getGuardian(address account) external view returns (address) {
-        return cloudGuardian[account];
+        return emailGuardian[account];
     }
 
     /// @inheritdoc BaseRecovery
     function isInited(address account) public view override returns (bool) {
-        return cloudGuardian[account] != address(0);
+        return emailGuardian[account] != address(0);
     }
 
     function _updateGuardian(address guardian) internal {
@@ -168,7 +188,7 @@ contract EmailAuthRecoveryModule is BaseRecovery {
             revert Errors.ZERO_ADDRESS_GUARDIAN();
         }
 
-        cloudGuardian[msg.sender] = guardian;
+        emailGuardian[msg.sender] = guardian;
 
         emit UpdateGuardian(msg.sender, guardian);
     }

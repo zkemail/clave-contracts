@@ -7,12 +7,14 @@ import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 import deployBatchCaller from './deploy-batch-caller';
 import deployCloudRecovery from './deploy-cloud-recovery';
+import deployEmailRecovery from './deploy-email-recovery';
 import deployFactory from './deploy-factory';
 import deployImplementation from './deploy-implementation';
 import deployPasskeyValidator from './deploy-passkey-validator';
 import deployPaymaster from './deploy-paymaster';
 import deployRegistry from './deploy-registry';
 import deploySocialRecovery from './deploy-social-recovery';
+
 import { ReleaseType } from './helpers/release';
 
 export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
@@ -28,5 +30,6 @@ export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
     await deployPasskeyValidator(hre, ReleaseType.development);
     await deploySocialRecovery(hre, ReleaseType.development);
     await deployCloudRecovery(hre, ReleaseType.development);
+    await deployEmailRecovery(hre, ReleaseType.development);
     await deployPaymaster(hre, ReleaseType.development, registry);
 }

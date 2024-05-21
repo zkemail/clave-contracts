@@ -23,6 +23,7 @@ import {Call} from './batch/BatchCaller.sol';
 
 import {IClaveAccount} from './interfaces/IClave.sol';
 
+import {EmailAccountRecovery} from './email-auth/EmailAccountRecovery.sol';
 /**
  * @title Main account contract for the Clave wallet infrastructure in zkSync Era
  * @author https://getclave.io
@@ -34,7 +35,8 @@ contract ClaveImplementation is
     ModuleManager,
     ERC1271Handler,
     TokenCallbackHandler,
-    IClaveAccount
+    IClaveAccount,
+    EmailAccountRecovery
 {
     // Helper library for the Transaction struct
     using TransactionHelper for Transaction;
@@ -61,7 +63,10 @@ contract ClaveImplementation is
         bytes calldata initialR1Owner,
         address initialR1Validator,
         bytes[] calldata modules,
-        Call calldata initCall
+        Call calldata initCall,
+        address _verifier,
+        address _dkim,
+        address _emailAuthImplementation
     ) external initializer {
         _r1AddOwner(initialR1Owner);
         _r1AddValidator(initialR1Validator);
@@ -77,6 +82,11 @@ contract ClaveImplementation is
             uint128 value = Utils.safeCastToU128(initCall.value);
             _executeCall(initCall.target, value, initCall.callData, initCall.allowFailure);
         }
+
+        isRecovering = false;
+        verifierAddr = _verifier;
+        dkimAddr = _dkim;
+        emailAuthImplementationAddr = _emailAuthImplementation;
     }
 
     // Receive function to allow ETHs
@@ -287,4 +297,121 @@ contract ClaveImplementation is
         if (value > type(uint160).max) revert();
         return address(uint160(value));
     }
+
+    // For EmailAccountRecovery
+
+    enum GuardianStatus {
+        NONE,
+        REQUESTED,
+        ACCEPTED
+    }
+    uint public constant DEFAULT_TIMELOCK_PERIOD = 3 days;
+
+    bool public isRecovering;
+    address public newSignerCandidate;
+    mapping(address => GuardianStatus) public guardians;
+    uint public timelockPeriod = DEFAULT_TIMELOCK_PERIOD;
+    uint public timelock;
+
+    function requestGuardian(address guardian) public {
+        require(guardian != address(0), "invalid guardian");
+        require(
+            guardians[guardian] == GuardianStatus.NONE,
+            "guardian status must be NONE"
+        );
+        guardians[guardian] = GuardianStatus.REQUESTED;
+    }
+
+    function acceptGuardian(
+        address guardian,
+        uint templateIdx,
+        bytes[] memory subjectParams,
+        bytes32
+    ) internal override {
+        require(!isRecovering, "recovery in progress");
+        require(guardian != address(0), "invalid guardian");
+        require(
+            guardians[guardian] == GuardianStatus.REQUESTED,
+            "guardian status must be REQUESTED"
+        );
+        require(templateIdx == 0, "invalid template index");
+        require(subjectParams.length == 1, "invalid subject params");
+        address walletAddrInEmail = abi.decode(subjectParams[0], (address));
+        require(
+            walletAddrInEmail == address(this),
+            "invalid wallet address in email"
+        );
+        guardians[guardian] = GuardianStatus.ACCEPTED;
+    }
+
+    function processRecovery(
+        address guardian,
+        uint templateIdx,
+        bytes[] memory subjectParams,
+        bytes32
+    ) internal override {
+        require(!isRecovering, "recovery in progress");
+        require(guardian != address(0), "invalid guardian");
+        require(
+            guardians[guardian] == GuardianStatus.ACCEPTED,
+            "guardian status must be ACCEPTED"
+        );
+        require(templateIdx == 0, "invalid template index");
+        require(subjectParams.length == 2, "invalid subject params");
+        address walletAddrInEmail = abi.decode(subjectParams[0], (address));
+        address newSignerInEmail = abi.decode(subjectParams[1], (address));
+        require(
+            walletAddrInEmail == address(this),
+            "invalid guardian in email"
+        );
+        require(newSignerInEmail != address(0), "invalid new signer");
+        isRecovering = true;
+        newSignerCandidate = newSignerInEmail;
+        timelock = block.timestamp + timelockPeriod;
+    }
+
+    function completeRecovery() public override {
+        require(isRecovering, "recovery not in progress");
+        require(timelock <= block.timestamp, "timelock not expired");
+        isRecovering = false;
+        timelock = 0;
+        // _transferOwnership(newSignerCandidate);
+        newSignerCandidate = address(0);
+    }
+
+    function acceptanceSubjectTemplates()
+        public
+        pure
+        override
+        returns (string[][] memory)
+    {
+        string[][] memory templates = new string[][](1);
+        templates[0] = new string[](5);
+        templates[0][0] = "Accept";
+        templates[0][1] = "guardian";
+        templates[0][2] = "request";
+        templates[0][3] = "for";
+        templates[0][4] = "{ethAddr}";
+        return templates;
+    }
+
+    function recoverySubjectTemplates()
+        public
+        pure
+        override
+        returns (string[][] memory)
+    {
+        string[][] memory templates = new string[][](1);
+        templates[0] = new string[](8);
+        templates[0][0] = "Set";
+        templates[0][1] = "the";
+        templates[0][2] = "new";
+        templates[0][3] = "signer";
+        templates[0][4] = "of";
+        templates[0][5] = "{ethAddr}";
+        templates[0][6] = "to";
+        templates[0][7] = "{ethAddr}";
+        return templates;
+    }
+
 }

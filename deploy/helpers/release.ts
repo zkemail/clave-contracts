@@ -39,7 +39,7 @@ export async function loadAddress(
     }
 }
 
-const addressPath = '../../../../packages/clave-constants/src/address/index.ts';
+const addressPath = '../../../../zkemail/clave-contracts/src/address/index.ts';
 
 const getRegex = (type: ReleaseType, key: AddressKey): RegExp => {
     return new RegExp(
