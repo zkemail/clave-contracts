@@ -26,4 +26,5 @@ export const contractNames = {
     gaslessPaymaster:
         'contracts/paymasters/GaslessPaymaster.sol:GaslessPaymaster',
     koiEarnRouter: 'contracts/KoiEarnRouter.sol:KoiEarnRouter',
+    emailAuth: 'contracts/email-auth/EmailAuth.sol:EmailAuth',
 };
