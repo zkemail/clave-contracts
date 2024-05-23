@@ -51,6 +51,14 @@ const config: HardhatUserConfig = {
             optimizer: {
                 fallbackToOptimizingForSize: false,
             },
+            libraries: {
+                  "contracts/email-auth/libraries/DecimalUtils.sol": {
+                    "DecimalUtils": "0xf120b2943F2B04C22317E61495b82d8FE0D7dD68"
+                  },
+                  "contracts/email-auth/libraries/SubjectUtils.sol": {
+                    "SubjectUtils": "0x1a6218e620Eb3599984ACCf62Dc92676A4569F8B"
+                  }
+                }
         },
     },
     defaultNetwork: 'zkSyncSepolia',
@@ -64,7 +72,7 @@ const config: HardhatUserConfig = {
         dockerizedNode,
     },
     solidity: {
-        version: '0.8.17',
+        version: '0.8.24',
     },
 };
 

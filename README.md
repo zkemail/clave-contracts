@@ -12,6 +12,7 @@
 ## Requirements
 
 -   install the zksync era test node from [here](https://github.com/matter-labs/era-test-node).
+-   current era_test_node-v0.1.0-alpha.21 doesn't work correctly, please use era_test_node-v0.1.0-alpha.18.
 
 ## Commands
 
@@ -34,3 +35,11 @@ PRIVATE_KEY=123cde574ccff....
 -   [Website](https://getclave.io/)
 -   [GitHub](https://github.com/getclave)
 -   [Twitter](https://twitter.com/getclave)
+
+## Email Auth Recovery Module
+
+### Deployment
+
+```
+npx hardhat deploy-zksync --script deploy/deploy-email-recovery.ts
+```
