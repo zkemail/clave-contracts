@@ -12,11 +12,12 @@ contract Create2Address {
 
     EmailAuth emailAuth;
     bytes32 proxyBytecodeHash;
+    address deployedProxyAddress;
 
     constructor() {
         console.log("constructor");
         emailAuth = new EmailAuth();
-        proxyBytecodeHash = bytes32(0x0100002f564d6017603b63f3adc01ad4c4367e355ef47d34a07a06ea98359c18);
+        proxyBytecodeHash = bytes32(0x010000795a7a1b6b550a8127b91748f90a87ac71b8861dce434b11125da32175);
     }
 
     function emailAuthImplementation() public view returns (address) {
@@ -27,6 +28,13 @@ contract Create2Address {
     function chainId() public view returns (uint256) {
         return block.chainid;
     }
+
+    function getDeployedProxyAddress() public view returns (address) {
+        return deployedProxyAddress;
+    }
+
+    // These function is copied from EmailRecoveryManager.sol.
+    // There are some little differences for testing, but the logic is the same.
 
     /// @notice Computes the address for email auth contract using the CREATE2 opcode.
     /// @dev This function utilizes the `Create2` library to compute the address. The computation uses a provided account address to be recovered, account salt,
@@ -48,7 +56,7 @@ contract Create2Address {
                 L2ContractHelper.computeCreate2Address(
                     address(this),
                     accountSalt,
-                    bytes32(0x0100002f564d6017603b63f3adc01ad4c4367e355ef47d34a07a06ea98359c18),
+                    bytes32(0x010000795a7a1b6b550a8127b91748f90a87ac71b8861dce434b11125da32175),
                     keccak256(
                         abi.encode(
                             emailAuthImplementation(),
@@ -105,6 +113,8 @@ contract Create2Address {
             )
         );
         address payable proxyAddress = abi.decode(returnData, (address));
+        console.log("proxyAddress", proxyAddress);
+        deployedProxyAddress = proxyAddress;
         // ERC1967Proxy proxy = ERC1967Proxy(proxyAddress);
         // guardianEmailAuth = EmailAuth(address(proxy));
         return address(proxyAddress);
