@@ -37,6 +37,9 @@ const inMemoryNode: NetworkUserConfig = {
     ethNetwork: '', // in-memory node doesn't support eth node; removing this line will cause an error
     zksync: true,
     chainId: 260,
+    gas: 90000000,
+    blockGasLimit: 90000000,
+    allowUnlimitedContractSize: true
 };
 
 const dockerizedNode: NetworkUserConfig = {
@@ -67,6 +70,7 @@ const config: HardhatUserConfig = {
     networks: {
         hardhat: {
             zksync: true,
+            allowUnlimitedContractSize: true
         },
         zkSyncSepolia,
         zkSyncMainnet,
