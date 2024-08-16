@@ -58,7 +58,16 @@ describe('Create2Address', function () {
         const computeAddress = await create2Address.computeEmailAuthAddress(recoveredAccount, accountSalt);
         console.log("computeAddress", computeAddress);
 
-        const deployedProxyAddress = await create2Address.deployProxy(recoveredAccount, accountSalt);
+/**
+ * 09:42:43  INFO Unable to estimate gas for the request with our suggested gas limit of 80010000. The transaction is most likely unexecutable. Breakdown of estimation:
+09:42:43  INFO  Estimated transaction body gas cost: 80000000
+09:42:43  INFO  Gas for pubdata: 0
+09:42:43  INFO  Overhead: 10000
+09:42:43  INFO execution reverted: Error function_selector = 0x, data = 0x
+ */
+        const deployedProxyAddress = await create2Address.deployProxy(recoveredAccount, accountSalt, {
+            gasLimit: 90000000.
+        });
         console.log("deployedProxyAddress", deployedProxyAddress);
     })
 })
