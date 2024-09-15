@@ -17,7 +17,7 @@ contract Create2Address {
     constructor() {
         console.log("constructor");
         emailAuth = new EmailAuth();
-        proxyBytecodeHash = bytes32(0x010000795a7a1b6b550a8127b91748f90a87ac71b8861dce434b11125da32175);
+        proxyBytecodeHash = bytes32(0x01000077dbf74e76183846364176d6a61c2630e371b4acea4c856d76bf919bc9);
     }
 
     function emailAuthImplementation() public view returns (address) {
@@ -56,7 +56,8 @@ contract Create2Address {
                 L2ContractHelper.computeCreate2Address(
                     address(this),
                     accountSalt,
-                    bytes32(0x010000795a7a1b6b550a8127b91748f90a87ac71b8861dce434b11125da32175),
+                    // bytes32(0x01000077dbf74e76183846364176d6a61c2630e371b4acea4c856d76bf919bc9),
+                    bytes32(0x01000077dbf74e76183846364176d6a61c2630e371b4acea4c856d76bf919bc9),
                     keccak256(
                         abi.encode(
                             emailAuthImplementation(),
@@ -67,24 +68,6 @@ contract Create2Address {
                         )
                     )
                 );
-        // } else {
-        //     return
-        //         Create2.computeAddress(
-        //             accountSalt,
-        //             keccak256(
-        //                 abi.encodePacked(
-        //                     type(ERC1967Proxy).creationCode,
-        //                     abi.encode(
-        //                         emailAuthImplementation(),
-        //                         abi.encodeCall(
-        //                             EmailAuth.initialize,
-        //                             (recoveredAccount, accountSalt, address(this))
-        //                         )
-        //                     )
-        //                 )
-        //             )
-        //         );
-        // }
     }
 
     function deployProxy(address recoveredAccount, bytes32 accountSalt) public returns (address) {
@@ -103,11 +86,11 @@ contract Create2Address {
                                 abi.encodeCall(
                                     EmailAuth.initialize,
                                     (
-                                recoveredAccount,
-                                accountSalt,
-                                address(this)
-                            )
-                        )
+                                        recoveredAccount,
+                                        accountSalt,
+                                        address(this)
+                                    )
+                                )
                     )
                 )
             )
